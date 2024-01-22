@@ -4,6 +4,7 @@ FROM node:20
 # Set the environment variable
 RUN apt update && apt upgrade -y \
   && apt install -y cowsay curl
+# Install kubectl
 
 ENV PATH "$PATH:/usr/games"
 

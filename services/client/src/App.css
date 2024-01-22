@@ -50,6 +50,12 @@
   margin: 0;
 }
 
+.error {
+  color: #e25172;
+  text-align: left;
+  margin: 0;
+}
+
 .text-left {
   text-align: left;
 }

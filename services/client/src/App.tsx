@@ -8,7 +8,8 @@ function App() {
 
   const [message, setMessage] = useState("");
   const [fetchMessage, setFetchMessage] = useState(false);
-
+  const [isError, setIsError] = useState(false);
+  
   document.onkeydown = function (e) {
     if (e.key === "Enter") {
       setFetchMessage(true);
@@ -24,13 +25,17 @@ function App() {
       },
       body: JSON.stringify({ message }),
     });
-    setFetchMessage(false)
+    // If the response is not OK, throw an error
+    if (!res.ok) {
+      setIsError(true);
+    }
     // Return the body of the response
     return res.json();
   },
   {
     enabled: fetchMessage,
     retry: false,
+    onSettled: () => setFetchMessage(false),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -53,11 +58,11 @@ function App() {
         <div className="div-left">
         {isFetching && <p className="read-the-docs center
         ">Loading...</p>}
-        {cowprint && !isFetching && <pre className="text-left">{cowprint.stdout}</pre>}
+        {cowprint && !isFetching && <pre className={isError ? "error" : "text-left"}>{cowprint.stdout}</pre>}
         </div>
 
       </div>
-      <p className="read-the-docs">
+      <p className={"read-the-docs"}>
         A website written by <a href="github.com/GridexX">GridexX</a> with <a href="https://vitejs.dev">Vite</a> and <a href="https://reactjs.org">React</a>
       </p>
     </>

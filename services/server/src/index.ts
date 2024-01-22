@@ -3,7 +3,7 @@ import cors from "cors";
 import subProcess from "child_process";
 
 const app: Express = express();
-const port = 3000;
+const port = 8000;
 app.use(express.json());
 
 app.use(cors({ origin: "*", exposedHeaders: "Content-Type" }));
@@ -23,15 +23,20 @@ app.post("/message", (req, res) => {
   subProcess.exec(`cowsay ${message}`, (err, stdout, stderr) => {
     if (err) {
       console.error(`[cowsay] Error: ${err.message}`);
-      res.status(500).send(`Error: ${err.message}`);
+      res.status(500).send({ stdout: err.message });
     } else if (stderr) {
       console.error(`[cowsay] Error: ${stderr}`);
-      res.status(500).send(`Error: ${stderr}`);
+      res.status(500).send({ stdout: stderr });
     } else {
       console.log(`[cowsay] Child process exited with code ${stdout}`);
       res.send({ stdout });
     }
   });
+});
+
+// Write a health check endpoint
+app.get("/health", (_, res) => {
+  res.send({ status: "OK" });
 });
 
 app.listen(port, () => {

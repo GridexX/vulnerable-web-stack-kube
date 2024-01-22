@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const child_process_1 = __importDefault(require("child_process"));
 const app = (0, express_1.default)();
-const port = 3000;
+const port = 8000;
 app.use(express_1.default.json());
 app.use((0, cors_1.default)({ origin: "*", exposedHeaders: "Content-Type" }));
 app.options("*", (0, cors_1.default)());
@@ -23,17 +23,21 @@ app.post("/message", (req, res) => {
     child_process_1.default.exec(`cowsay ${message}`, (err, stdout, stderr) => {
         if (err) {
             console.error(`[cowsay] Error: ${err.message}`);
-            res.status(500).send(`Error: ${err.message}`);
+            res.status(500).send({ stdout: err.message });
         }
         else if (stderr) {
             console.error(`[cowsay] Error: ${stderr}`);
-            res.status(500).send(`Error: ${stderr}`);
+            res.status(500).send({ stdout: stderr });
         }
         else {
             console.log(`[cowsay] Child process exited with code ${stdout}`);
             res.send({ stdout });
         }
     });
+});
+// Write a health check endpoint
+app.get("/health", (_, res) => {
+    res.send({ status: "OK" });
 });
 app.listen(port, () => {
     console.log(`[server] Server is running at http://localhost:${port}`);
