@@ -1,0 +1,23 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-limits-pods
+spec:
+  rules:
+  - name: add-limits-pods
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    mutate:
+      foreach:
+      - list: "request.object.spec.containers[]"
+        patchStrategicMerge:
+          spec:
+            containers:
+            - (name): "{{element.name}}"
+              resources:
+                limits:
+                  +(memory): "100Mi"
+                  +(cpu): "100m"

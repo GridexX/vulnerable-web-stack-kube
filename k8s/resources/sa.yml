@@ -1,0 +1,34 @@
+# Write a service account that have all the permissions to access the cluster and bind it to the server deployment
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: server
+  namespace: default
+---
+# Path: k8s/role.yml
+# Write a role that have all the permissions to access the cluster
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: server
+  namespace: default
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+---
+# Path: k8s/rolebinding.yml
+# Bind the role to the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: server
+  namespace: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: server
+subjects:
+- kind: ServiceAccount
+  name: server
+  namespace: default
