@@ -12,6 +12,8 @@ spec:
       labels:
         app: server
     spec:
+      securityContext:
+        runAsNonRoot: true
       containers:
         - name: server
           image: gridexx/cowsay-express:1.0.1
