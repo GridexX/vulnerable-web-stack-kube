@@ -1,6 +1,16 @@
-# Vulnerable-web-stack-kube
+<div align="center">
+  <img src="https://github.com/GridexX/vulnerable-web-stack-kube/assets/50552672/990b9e90-7446-4c4f-b9ad-4fe1225d21fd" width="300">
+  <h1>
+    Vulnerable Web Stack Kube
+  </h1>
+  <h4>How missconfigured services inside Kubernetes can lead to privilegies escalation</h4>
+  <p align="center">
+    <a href="https://github.com/GridexX/vulnerable-web-stack-kube"><img src="https://img.shields.io/github/stars/GridexX/vulnerable-web-stack-kube.svg?style=flat" alt="stars"></a>
+    <a href="https://github.com/GridexX/vulnerable-web-stack-kube"><img src="https://img.shields.io/github/license/GridexX/vulnerable-web-stack-kube.svg?style=flat" alt="license"></a>
+  </p>
+</div>
 
-This repository demonstrates how missconfigured services inside Kubernetes can lead to privilegies escalation.
+
 
 There are two services in this repository, a client and a server. The client is a simple web application that send a message to the server. The server is a simple web application that receive a message and display it in the console with the cowsay command.
 
