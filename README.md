@@ -103,6 +103,88 @@ This step describes how to build and sign the docker images.
     docker trust sign <your-docker-hub-username>/vulnerable-web-stack-kube-client:latest
     ```
 
+### Add a service Mesh and mTLS communication between services
+
+> [!NOTE]
+> This step is optional and requires a service mesh like Linkerd. To do so, you first need to install the Linkerd CLI and the Linkerd control plane.
+
+1. Install the Linkerd CLI
+
+    ```bash
+    curl --proto '=https' --tlsv1.2 -sSfL https://run.linkerd.io/install | sh
+    export PATH=$PATH:$HOME/.linkerd2/bin
+    ```
+
+2. Install the Linkerd control plane
+
+    To check that check and validate that everything is configured and your cluster is ready to install Linkerd, run:
+
+    ```bash
+    linkerd check --pre
+    ```
+
+    If there are any checks that do not pass, make sure to follow the provided links and fix those issues before proceeding.
+
+    Now Install the Linkerd control plane by running:
+
+    ```bash
+        linkerd install | kubectl apply -f -
+    ```
+
+3. Install Linkerd onto your cluster
+
+    Now that you have the CLI running locally and a cluster that is ready to go, it’s time to install Linkerd on your Kubernetes cluster. To do this, run:
+
+    ```bash
+    linkerd install --crds | kubectl apply -f -
+    linkerd install | kubectl apply -f -
+    ```
+
+    Wait for the control plane to be ready (and verify your installation) by running:
+
+    ```bash
+    linkerd check
+    ```
+
+4. Add mTLS communication between the services
+
+    Ensure, the Server and Client services are running in the `default` namespace. We will now install the Linkerd service mesh and add mTLS communication between the services.
+
+    ```bash
+    kubectl get deploy -o yaml \
+    | linkerd inject - \
+    | kubectl apply -f -
+    ```
+
+    This command retrieves all of the deployments running, runs their manifests through linkerd inject, and then reapplies it to the cluster. This will add the Linkerd proxy to each of the deployments, and enable mTLS communication between the services.
+
+    > [!NOTE]
+    > Congratulations! You have now installed Linkerd and added mTLS communication between the services.
+
+5. Explore the Linkerd dashboard (optional)
+
+    We’ve added Linkerd to Cowsay, but there are no visible changes to the application!
+
+    Let’s take a closer look at what Linkerd is actually doing. To do this, let’s install the viz extension, which will install an on-cluster metric stack and dashboard.To install the viz extension, run:
+
+    ```bash
+    linkerd viz install | kubectl apply -f - # install the on-cluster metrics stack
+    ```
+
+    Once you’ve installed the extension, let’s validate everything one last time:
+
+    ```bash
+    linkerd check
+    ```
+
+    With the control plane and extensions installed and running, we’re now ready to explore Linkerd! Access the dashboard with:
+
+    ```bash
+    linkerd viz dashboard &
+    ```
+
+    This command will open the Linkerd dashboard in your default web browser.
+
 ## Clean the cluster 🗑️
 
 ```bash
